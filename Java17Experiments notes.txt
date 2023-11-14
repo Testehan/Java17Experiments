@@ -1,0 +1,91 @@
+Check here all new features of Java 17 : https://openjdk.org/projects/jdk/17/
+
+
+
+JDK 17 new features
+
+    1. JEP 409: Sealed Classes
+        Summary
+            Enhance the Java programming language with sealed classes and interfaces. Sealed classes and interfaces
+            restrict which other classes or interfaces may extend or implement them.
+
+        Motivation
+            Java supports enum classes to model the situation where a given class has only a fixed number of
+            instances. In the following code, an enum class lists a fixed set of planets. They are the only values
+            of the class, therefore you can switch over them exhaustively — without having to write a default clause:
+
+                enum Planet { MERCURY, VENUS, EARTH }
+                Planet p = ...
+                switch (p) {
+                  case MERCURY: ...
+                  case VENUS: ...
+                  case EARTH: ...
+                }
+            Using enum classes to model fixed sets of values is often helpful, but sometimes we want to model a fixed
+            set of kinds of values. We can do this by using a class hierarchy not as a mechanism for code inheritance
+            and reuse but, rather, as a way to list kinds of values. Building on our planetary example, we might
+            model the kinds of values in the astronomical domain as follows:
+                interface Celestial { ... }
+                final class Planet implements Celestial { ... }
+                final class Star   implements Celestial { ... }
+                final class Comet  implements Celestial { ... }
+            This hierarchy does not, however, reflect the important domain knowledge that there are only three kinds
+            of celestial objects in our model. In these situations, restricting the set of subclasses or
+            subinterfaces can streamline the modeling.
+
+            In a graphics library, the author of a class Shape may intend that only particular classes can extend
+            Shape, since much of the library's work involves handling each kind of shape in the appropriate way.
+            The author is interested in the clarity of code that handles known subclasses of Shape, and not
+            interested in writing code to defend against unknown subclasses of Shape. Allowing arbitrary classes
+            to extend Shape, and thus inherit its code for reuse, is not a goal in this case. Unfortunately,
+            Java assumes that code reuse is always a goal: If Shape can be extended at all, then it can be extended
+            by any number of classes. It would be helpful to relax this assumption so that an author can declare a
+            class hierarchy that is not open for extension by arbitrary classes. Code reuse would still be possible
+            within such a closed class hierarchy, but not beyond.
+
+            The language provides limited tools in this area: Either make a class final, so it has zero subclasses,
+            or make the class or its constructor package-private, so it can only have subclasses in the same package.
+
+            In summary, it should be possible for a superclass to be widely accessible (since it represents an
+            important abstraction for users) but not widely extensible (since its subclasses should be restricted
+            to those known to the author). The author of such a superclass should be able to express that it is
+            co-developed with a given set of subclasses, both to document intent for the reader and to allow
+            enforcement by the Java compiler. At the same time, the superclass should not unduly constrain its
+            subclasses by, e.g., forcing them to be final or preventing them from defining their own state.
+
+        Description
+            A sealed class or interface can be extended or implemented only by those classes and interfaces permitted to
+            do so.
+            A class is sealed by applying the sealed modifier to its declaration. Then, after any extends and implements
+            clauses, the permits clause specifies the classes that are permitted to extend the sealed class. For example,
+            the following declaration of Shape specifies three permitted subclasses:
+                package com.example.geometry;
+                public abstract sealed class Shape
+                    permits Circle, Rectangle, Square { ... }
+            The classes specified by permits must be located near the superclass: either in the same module (if the
+            superclass is in a named module) or in the same package (if the superclass is in the unnamed module)
+
+            A sealed class imposes three constraints on its permitted subclasses:
+                -The sealed class and its permitted subclasses must belong to the same module, and, if declared in an
+                unnamed module, to the same package.
+                -Every permitted subclass must directly extend the sealed class.
+                -Every permitted subclass must use a modifier to describe how it propagates the sealing initiated by
+                its superclass:
+                    -A permitted subclass may be declared final to prevent its part of the class hierarchy from being
+                    extended further. (Record classes are implicitly declared final.)
+                    -A permitted subclass may be declared sealed to allow its part of the hierarchy to be extended
+                    further than envisaged by its sealed superclass, but in a restricted fashion.
+                    -A permitted subclass may be declared non-sealed so that its part of the hierarchy reverts to
+                    being open for extension by unknown subclasses. A sealed class cannot prevent its permitted
+                    subclasses from doing this. (The modifier non-sealed is the first hyphenated keyword proposed
+                    for Java.)
+
+            Sealed interfaces
+                As for classes, an interface can be sealed by applying the sealed modifier to the interface. After any
+                extends clause to specify superinterfaces, the implementing classes and subinterfaces are specified
+                with a permits clause
+
+
+
+
+TODO Create git repo
